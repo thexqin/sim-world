@@ -10,7 +10,9 @@ A small band of creatures called **agents**, women and men, live on a grid of gr
 
 ## Demo
 
-https://github.com/user-attachments/assets/b5d70e3d-3839-4b3a-b2db-4938dc6e6663
+https://github.com/user-attachments/assets/1f158d80-ac22-46e1-a728-c13c91ac8899
+
+https://github.com/user-attachments/assets/17c30a66-6d29-4889-91b8-89e4446dbc13
 
 ## How this was made
 
