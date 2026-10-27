@@ -34,7 +34,7 @@ node --version
 ## Getting started
 
 ```bash
-git clone https://github.com/<your-username>/sim-world.git
+git clone https://github.com/thexqin/sim-world.git
 cd sim-world
 node server.js
 ```
