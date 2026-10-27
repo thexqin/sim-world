@@ -11,8 +11,8 @@
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.4 system-ui, sans-serif; }
 main { display: flex; gap: 16px; padding: 16px; align-items: flex-start; flex-wrap: wrap; }
-canvas { display: block; border: 1px solid #333; max-width: 100%; }
-#world { image-rendering: pixelated; cursor: crosshair; }
+canvas { display: block; border: 1px solid #333; }
+#world { cursor: crosshair; }
 #history { background: var(--panel); }
 aside { background: var(--panel); padding: 12px 16px; border-radius: 6px; width: 300px; }
 #god { width: 320px; max-height: calc(100vh - 32px); overflow-y: auto; }
@@ -93,3 +93,22 @@ dialog#guide ul { padding-left: 20px; }
 .guide-table td:first-child { width: 170px; }
 .guide-table td:nth-child(2) { color: #cfd4da; }
 .guide-table .tag { color: var(--muted); font-size: 11px; }
+
+/* agent list */
+.agent-list { margin: 8px 0; }
+.agent-list td { padding: 2px 4px; white-space: nowrap; }
+.agent-row { cursor: pointer; }
+.agent-row:hover { background: #262c34; }
+.agent-row.selected { background: #2f3742; }
+.agent-row.dead { color: var(--muted); }
+.swatch { display: inline-block; width: 10px; height: 10px; vertical-align: -1px; border: 1px solid #000; }
+.swatch.f { border-radius: 50%; }
+.minibars { display: inline-flex; flex-direction: column; gap: 1px; width: 60px; vertical-align: middle; }
+.minibars i { display: block; height: 3px; background: var(--bar-bg); }
+.minibars b { display: block; height: 100%; }
+.details { border-top: 1px solid #333; margin-top: 6px; padding-top: 2px; }
+.details h2 { margin-top: 8px; }
+
+/* map column: width set from JS (fit) */
+.map { flex: none; max-width: 100%; }
+.map p { margin: 6px 0; }

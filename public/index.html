@@ -8,16 +8,16 @@
 </head>
 <body>
   <main>
-    <section class="map">
-      <canvas id="world" title="Click an empty grass tile to drop a berry there."></canvas>
-      <p class="muted">Click an empty grass tile to drop food. Hover any control for an explanation, or open the <a href="#" class="open-guide">Guide</a>.</p>
+    <section class="map" id="map-col">
+      <canvas id="world" title="Click an agent to select it, or an empty grass tile to drop a berry there."></canvas>
+      <p class="muted">Click an agent to select it, or empty grass to drop food. Hover any control for an explanation, or open the <a href="#" class="open-guide">Guide</a>.</p>
       <div class="chart-head">
         <h2>History</h2>
         <select id="history-agent" title="Which agent's needs to plot."></select>
         <span class="legend" id="legend"></span>
         <button id="clear-history" class="small danger" title="Delete the saved tick-by-tick history (what this chart and /api/log read from). The world itself is not changed.">Clear history</button>
       </div>
-      <canvas id="history" height="140" title="Each line is one need over time, 0 at the bottom and 100 at the top. Vertical lines mark the start of each day."></canvas>
+      <canvas id="history" title="Each line is one need over time, 0 at the bottom and 100 at the top. Vertical lines mark the start of each day."></canvas>
     </section>
 
     <aside id="panel">
@@ -31,7 +31,7 @@
       <h1>God mode <button class="open-guide small" title="Open the full guide: how the world works and what every dial does.">📖 Guide</button></h1>
       <div class="buttons">
         <button id="play" title="Pause or resume the world."></button>
-        <button id="add-agent" title="Add one more agent at a random grass tile, using the Starting hunger / thirst / energy dials.">Add agent</button>
+        <button id="add-agent" title="Add a grown-up newcomer of random sex at a random grass tile. Newcomers are not related to anyone, so they can bring new blood into a family-locked population.">Add agent</button>
       </div>
       <div id="dials-main"></div>
       <details>
@@ -42,7 +42,7 @@
       <h2>World</h2>
       <div class="row">
         <label title="The seed decides the random map. Same seed = same map.">Seed <input id="reset-seed" type="number" min="0" max="999999"></label>
-        <button id="reset" class="danger" title="Build a brand-new world from this seed and the current dials. The current run and its history are cleared; snapshots and the event log are kept.">Reset world</button>
+        <button id="reset" class="danger" title="Build a brand-new world from this seed and the current dials, starting with two couples. The current run and its history are cleared; snapshots and the event log are kept.">Reset world</button>
       </div>
 
       <h2>Snapshots</h2>
@@ -74,7 +74,7 @@
       <li><span class="sw" style="background:#2f6fc4"></span><b>Water</b>: lakes. Agents can't walk on water, but they drink from the edge.</li>
       <li><span class="sw" style="background:#1f4a1c"></span><b>Trees</b>: block movement. Berries like to grow beside them.</li>
       <li><span class="sw berry"></span><b>Berries</b>: food. Eaten berries disappear and new ones grow over time.</li>
-      <li><span class="sw" style="background:#e63946;outline:1px solid #000"></span><b>Agent</b>: each agent has its own colour. A dashed line shows where it is heading; a small “z” means it is asleep; grey means it has died.</li>
+      <li><span class="sw" style="background:#e63946;outline:1px solid #000;border-radius:50%"></span><b>Woman</b> (circle) and <span class="sw" style="background:#00b4d8;outline:1px solid #000"></span><b>man</b> (square). Each agent has its own colour; children are drawn smaller and grow as they age. A dashed line shows where it is heading. Small marks: <b>z</b> asleep, <b>♥</b> just had a child, <b>⚔</b> fighting. Grey means dead; bodies disappear after a day. A white frame marks the agent you have selected.</li>
     </ul>
 
     <h2>Time</h2>
@@ -90,20 +90,34 @@
     </ul>
 
     <h2>How the agent decides</h2>
-    <p>Every tick the agent gives each of its four choices a score and does the one with the highest score:</p>
+    <p>Every tick the agent gives each of its five choices a score and does the one with the highest score:</p>
     <ul>
       <li><b>eat</b> = its hunger (if any berry can be reached)</li>
       <li><b>seek_water</b> = its thirst (if any water can be reached)</li>
       <li><b>sleep</b> = 100 − energy, plus a bonus at night</li>
+      <li><b>mate</b> = just above wandering, but only when it is content and a partner is available (see below)</li>
       <li><b>wander</b> = a fixed score (currently <span data-dial="wanderScore"></span>)</li>
     </ul>
     <p>So the agent wanders until a need climbs above the wander score, then deals with the biggest need first. To eat or drink it walks the shortest path to the nearest berry or lake edge, one tile per tick. Whatever it is already doing gets a small bonus so it doesn't keep changing its mind. You can see the live scores under “scores &amp; recent actions” in the status panel; the winner is highlighted.</p>
+
+    <h2>Life, family and fights</h2>
+    <p>Agents are women (circles) and men (squares). They are born, grow up, have children, compete, fight, grow old and die.</p>
+    <ul>
+      <li><b>Age and strength.</b> Every agent has an age in in-world days and one <b>strength</b> number from 0 to 1. Children start at 0.25 and grow to full strength when they reach the <i>Adult age</i>. In the last <i>Adult age</i> days of their life, elders slowly drop to 0.5. Low strength means tiring faster and healing more slowly.</li>
+      <li><b>Lifespan.</b> Each agent's natural lifespan is the <i>Lifespan</i> dial give or take 20%. Past it, they lose health every tick and soon die of old age.</li>
+      <li><b>Having children.</b> A woman and a man can have a child when both are adults (not children or elders), both are <b>content</b> (hunger, thirst and tiredness all below the <i>Wander base score</i>), they are not family (parent and child, or brother and sister), she has not had a child within the <i>Birth interval</i>, and fewer than <i>Max agents</i> are alive. When that's true they walk to each other, and as soon as they stand side by side a baby is born next to the mother. Its sex is random.</li>
+      <li><b>Competing.</b> Berries are first come, first served.</li>
+      <li><b>Fights.</b> Two grown-ups of the same sex standing side by side may fight when at least one of them is hungry or thirsty. The chance each tick is the <i>Aggression</i> dial. The winner is random, but the stronger and healthier one usually wins. The loser loses health (<i>Fight damage</i>), and a fight can kill. Each agent fights at most once per in-world hour. Children never fight.</li>
+      <li><b>Death.</b> Agents die of hunger, thirst, exhaustion, old age or a fight. The event log records births and deaths, with the cause and age.</li>
+      <li><b>New blood.</b> A new world starts with two unrelated couples. If after a few generations everyone is related, no more children can be born and the group dies out, as small isolated groups can. <b>Add agent</b> brings in an unrelated newcomer.</li>
+    </ul>
 
     <h2>What you can do</h2>
     <ul>
       <li><b>Dials</b>: change any rule while the world runs. Changes apply on the next tick. Dials marked <i>(on reset)</i> only shape the next new world.</li>
       <li><b>Click the map</b> on empty grass to drop a berry.</li>
-      <li><b>Add agent</b>: put another creature into the world. The <b>✕</b> next to an agent's name in the status panel removes it (dead ones too).</li>
+      <li><b>Click an agent</b> on the map, or its row in the status panel, to see its details (age, strength, parents, children, scores) and plot its history.</li>
+      <li><b>Add agent</b>: bring in a grown-up newcomer of random sex. The <b>✕</b> in an agent's row removes it (dead ones too).</li>
       <li><b>Reset world</b>: start over with a fresh map from the chosen seed.</li>
     </ul>
 

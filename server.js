@@ -57,8 +57,9 @@ function newRun(kind) {
 let lastPush = 0;
 function loop() {
   if (config.running) {
-    const rows = step(sim);
+    const { rows, events } = step(sim);
     db.saveTick(serialize(sim), rows);
+    for (const e of events) record(e.kind, e.data); // births and deaths
     const now = Date.now();
     if (now - lastPush >= 1000 / config.maxPushPerSec) {
       lastPush = now;
@@ -91,7 +92,7 @@ const actions = {
   },
   add_agent() {
     const a = addAgent(sim);
-    record('add_agent', { id: a.id, x: a.x, y: a.y });
+    record('add_agent', { id: a.id, sex: a.sex, x: a.x, y: a.y });
     return { id: a.id };
   },
   // Its past rows stay in the history until Clear history.

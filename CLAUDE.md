@@ -31,6 +31,7 @@ sim-world/
   .npmrc                 # cache=./.npm-cache
   package.json
   server.js              # HTTP server + tick loop + API (localhost:3000)
+  start.cmd / start.sh   # one-click launchers (check Node 22.5+, open browser)
   /sim
     world.js             # grid map (default 40x40): grass, water, tree, food
     agent.js             # status + decision logic
@@ -54,8 +55,8 @@ sim-world/
 |---|---|
 | `config` | Current dial values (key, value) |
 | `world_state` | Current tick, clock (day/hour), RNG state and world grid (single row) |
-| `agent_state` | Current agent status: position, hunger, thirst, energy, health, action, inventory |
-| `tick_log` | Time series: tick, day, hour, agent status, action chosen |
+| `agent_state` | Current agent status: position, hunger, thirst, energy, health, action, inventory, sex, age, lifespan, parents, last birth/fight, death time and cause |
+| `tick_log` | Time series: tick, day, hour, agent status (incl. sex, age), action chosen |
 | `events` | God-mode actions, each stamped with the tick when it happened |
 | `snapshots` | Full save points (world grid + agent + config as JSON) so a run can be resumed or restored |
 
@@ -75,7 +76,9 @@ Each tick:
 3. Pick the highest score and move one tile toward the target, or perform the action.
 4. Write status and chosen action to `tick_log`.
 
-Keep the decision step behind a single function (`decide(agent, world, config)`) so it can later be swapped for an LLM-driven decision and the two compared.
+Keep the decision step behind a single function (`decide(agent, world, config, clock, agents)`, pure) so it can later be swapped for an LLM-driven decision and the two compared.
+
+**v2 (population):** agents have sex, age and a strength curve; `mate` is a fifth option. After everyone acts, fights then births are resolved in agent-id order, and bodies are removed after a day. Design: `notes/DESIGN-population.md` (private).
 
 ## God mode (browser dials)
 
@@ -132,7 +135,7 @@ node server.js
 ```
 
 Open `http://localhost:3000`. Stop with Ctrl+C. History: `GET /api/log?from=1&to=100&agent=1`, events: `GET /api/events`.
-Status: build steps 1–6 done. State is saved every tick; restarting resumes exactly where it stopped.
+Status: build steps 1–6 done, plus v2 population (sex, age, mating, fights, death) and a map that sizes itself to the window. State is saved every tick; restarting resumes exactly where it stopped. Releases: see `notes/HISTORY.md` section 11 for how to build the zip.
 To start over: use **Reset world** in the browser (or stop the server and delete `data/`).
 Private notes: `notes/` is gitignored and belongs to the user. Keep `notes/HISTORY.md` updated with what was done and decided in each session.
 Note: the project root is this folder (no `sim-world/` subfolder); `sim/sim.js` holds the tick step.

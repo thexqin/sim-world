@@ -8,6 +8,7 @@
 const TIME = 'Time & playback';
 const NEEDS = 'Needs (hunger, thirst, energy, health)';
 const DECIDE = 'How the agent decides';
+const LIFE = 'Life, family & fights';
 const FOOD = 'Food & weather';
 const WORLD = 'New world (applied on reset)';
 const DISPLAY = 'Display';
@@ -51,7 +52,7 @@ export const DIALS = [
   { key: 'healthRegen', label: 'Health regen per tick', type: 'number', min: 0, max: 5, step: 0.01, default: 0.05, group: 'advanced', section: NEEDS,
     help: 'Health recovered each tick while no need is at its limit.' },
   { key: 'startHunger', label: 'Starting hunger', type: 'number', min: 0, max: 100, step: 1, default: 20, group: 'advanced', section: NEEDS,
-    help: 'Hunger of a newly created agent (on reset or when you press Add agent).' },
+    help: 'Hunger of a newly created agent: on reset, when you press Add agent, and for newborn children.' },
   { key: 'startThirst', label: 'Starting thirst', type: 'number', min: 0, max: 100, step: 1, default: 20, group: 'advanced', section: NEEDS,
     help: 'Thirst of a newly created agent.' },
   { key: 'startEnergy', label: 'Starting energy', type: 'number', min: 0, max: 100, step: 1, default: 80, group: 'advanced', section: NEEDS,
@@ -59,11 +60,25 @@ export const DIALS = [
 
   // Decision scoring
   { key: 'wanderScore', label: 'Wander base score', type: 'number', min: 0, max: 100, step: 1, default: 35, group: 'advanced', section: DECIDE,
-    help: 'The fixed score for wandering. A need has to score higher than this before the agent acts on it. Higher makes the agent relaxed (waits until quite hungry before eating); lower makes it fussy (eats or drinks at the first sign of need).' },
+    help: 'The fixed score for wandering. A need has to score higher than this before the agent acts on it. Higher makes the agent relaxed (waits until quite hungry before eating); lower makes it fussy (eats or drinks at the first sign of need). It also sets when an agent counts as content (every need below this, so it can mate) or stressed (hungry or thirsty above this, so it may fight).' },
   { key: 'nightSleepBonus', label: 'Sleep bonus at night', type: 'number', min: 0, max: 100, step: 1, default: 30, group: 'advanced', section: DECIDE,
     help: 'Extra points added to the sleep score during the night, so the agent tends to sleep at night instead of in the middle of the day. Set to 0 and it only sleeps when tired.' },
   { key: 'commitBonus', label: 'Bonus for keeping current action', type: 'number', min: 0, max: 50, step: 1, default: 10, group: 'advanced', section: DECIDE,
     help: 'Extra points for whatever the agent is already doing. This stops it flipping back and forth every tick when two choices score about the same. Higher makes it more stubborn.' },
+
+  // Life, family & fights
+  { key: 'adultAge', label: 'Adult age (days)', type: 'number', min: 0.5, max: 20, step: 0.5, default: 3, group: 'main', section: LIFE,
+    help: 'How many in-world days a child takes to grow up. Children are weaker, tire faster and heal more slowly; their strength grows steadily until this age. Adults can mate and fight. Agents added with the Add agent button arrive already this old.' },
+  { key: 'lifespan', label: 'Lifespan (days)', type: 'number', min: 2, max: 200, step: 1, default: 20, group: 'main', section: LIFE,
+    help: 'How long agents typically live, in in-world days. Each agent gets its own lifespan within 20% of this. In the last "Adult age" days of life an agent becomes an elder and slowly loses strength. Past its lifespan it loses health every tick and soon dies of old age. Keep this well above Adult age, or children die of old age before they grow up.' },
+  { key: 'birthInterval', label: 'Birth interval (days)', type: 'number', min: 0.5, max: 30, step: 0.5, default: 2, group: 'main', section: LIFE,
+    help: 'The least time, in in-world days, between one mother’s children. Lower means faster population growth.' },
+  { key: 'maxAgents', label: 'Max agents', type: 'number', min: 1, max: 50, step: 1, default: 10, group: 'main', section: LIFE,
+    help: 'Population cap. No children are born while this many agents are alive. You can still add agents by hand.' },
+  { key: 'aggression', label: 'Aggression', type: 'number', min: 0, max: 1, step: 0.05, default: 0.2, group: 'main', section: LIFE,
+    help: 'The chance each tick that two grown-ups of the same sex standing side by side start a fight, when at least one of them is hungry or thirsty. 0 means they never fight. Each agent fights at most once per in-world hour.' },
+  { key: 'fightDamage', label: 'Fight damage', type: 'number', min: 0, max: 100, step: 1, default: 15, group: 'main', section: LIFE,
+    help: 'Health the loser of a fight loses when beaten by a full-strength winner. A weaker winner (a child-like or elderly one) does proportionally less. The winner is picked at random, but the stronger and healthier side usually wins.' },
 
   // Food & weather
   { key: 'foodRegrowth', label: 'Food regrowth rate', type: 'number', min: 0, max: 1, step: 0.01, default: 0.15, group: 'main', section: FOOD,
@@ -83,7 +98,7 @@ export const DIALS = [
   { key: 'seed', label: 'Seed', type: 'number', min: 0, max: 999999, step: 1, default: 42, group: 'main', reset: true, section: WORLD,
     help: 'The number that decides the random map and every random choice in the world. The same seed with the same dials and the same actions always plays out exactly the same. Pick a new seed and press Reset world for a different map.' },
   { key: 'worldSize', label: 'World size (tiles)', type: 'number', min: 10, max: 100, step: 1, default: 40, group: 'advanced', reset: true, section: WORLD,
-    help: 'Width and height of the square map, in tiles.' },
+    help: 'Width and height of the square map, in tiles. A new world starts with one woman and one man.' },
   { key: 'lakeCount', label: 'Lakes', type: 'number', min: 0, max: 20, step: 1, default: 4, group: 'advanced', reset: true, section: WORLD,
     help: 'How many lakes are placed. Lakes can overlap. With 0 lakes there is no water and the agent will eventually die of thirst.' },
   { key: 'lakeMinRadius', label: 'Lake min radius', type: 'number', min: 1, max: 10, step: 0.5, default: 2, group: 'advanced', reset: true, section: WORLD,

@@ -2,7 +2,7 @@
 
 A tiny 2D world that runs on your own computer and that you watch and control from a web browser.
 
-Small square creatures called **agents** live on a grid of grass, lakes and trees. Each one gets hungry, thirsty and tired, and has to find berries, water and rest to stay alive. You play god: change the rules of the world with dials while it runs, drop food, add creatures, and save and rewind moments in time.
+A small band of creatures called **agents**, women and men, live on a grid of grass, lakes and trees. Each one gets hungry, thirsty and tired, and has to find berries, water and rest to stay alive. They grow up, have children, compete, fight, grow old and die. You play god: change the rules of the world with dials while it runs, drop food, add creatures, and save and rewind moments in time.
 
 - No dependencies: plain Node.js and plain JavaScript, no `npm install`, no build step.
 - Everything stays in this folder. Delete the folder and it's gone.
@@ -66,22 +66,31 @@ The world moves forward in small steps called **ticks** (4 per second at normal 
    - eat = its hunger
    - drink = its thirst
    - sleep = 100 − energy, plus a bonus at night
+   - mate = just above wandering, when it is content and a partner is available
    - wander = a fixed score
-3. **Does the highest-scoring thing.** It walks one tile along the shortest path to the nearest berry or lake edge, or eats, drinks, sleeps or wanders.
+3. **Does the highest-scoring thing.** It walks one tile along the shortest path to the nearest berry, lake edge or partner, or eats, drinks, sleeps or wanders.
 
 If hunger or thirst reaches 100, or energy reaches 0, the agent loses health. At 0 health it dies.
 
+### Life, family and fights
+
+- **Women** (circles) and **men** (squares) each have an age and a **strength** from 0 to 1. Children start weak and grow to full strength at the *Adult age*. Elders fade in their last days. Weaker agents tire faster and heal more slowly.
+- **Children:** an adult woman and man who are both content (no pressing need) and not family walk to each other, and a baby is born next to the mother. Each mother waits a *Birth interval* between children, and the population is capped at *Max agents*.
+- **Fights:** two grown-ups of the same sex side by side may fight when one is hungry or thirsty. The stronger and healthier one usually wins, and fights can kill.
+- **Death** comes from hunger, thirst, exhaustion, old age (around the *Lifespan*) or a fight.
+- A new world starts with **two unrelated couples**. Once everyone is related, no more children are born and the group can die out. **Add agent** brings in a newcomer.
+
 Berries regrow over time, mostly next to trees. A day/night cycle darkens the map at night, when agents prefer to sleep.
 
-The open page has a **📖 Guide** button that explains all of this in more detail, including every dial. Hovering over any control also shows a short explanation.
+The map grows to fit your browser window. The open page has a **📖 Guide** button that explains all of this in more detail, including every dial. Hovering over any control also shows a short explanation.
 
 ## God mode
 
 From the panel on the right you can:
 
-- **Turn dials** while the world runs: speed, day length, hunger/thirst/energy rates, food regrowth and scarcity, drought, and many advanced settings. Changes apply on the next tick.
+- **Turn dials** while the world runs: speed, day length, hunger/thirst/energy rates, adult age, lifespan, birth interval, population cap, aggression, fight damage, food regrowth and scarcity, drought, and many advanced settings. Changes apply on the next tick.
 - **Click the map** to drop a berry on empty grass.
-- **Add or remove agents.**
+- **Add or remove agents**, and click an agent to see its age, strength, family and history.
 - **Reset the world** with a new seed for a new random map.
 - **Save, load and delete snapshots**: save points you can jump back to.
 - **Read or clear the event log**: every change you make, stamped with the tick it happened.

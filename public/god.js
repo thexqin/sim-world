@@ -94,7 +94,9 @@ function describe(e) {
   switch (e.kind) {
     case 'dial': return `${schemaByKey.get(d.key)?.label ?? d.key}: ${d.from} → ${d.to}`;
     case 'spawn_food': return `food dropped at (${d.x}, ${d.y})`;
-    case 'add_agent': return `agent ${d.id} added at (${d.x}, ${d.y})`;
+    case 'add_agent': return `agent ${d.id}${d.sex ? (d.sex === 'F' ? ' ♀' : ' ♂') : ''} added at (${d.x}, ${d.y})`;
+    case 'birth': return `agent ${d.id} ${d.sex === 'F' ? '♀' : '♂'} born to ${d.motherId} and ${d.fatherId}`;
+    case 'death': return `agent ${d.id} ${d.sex === 'F' ? '♀' : '♂'} died of ${d.cause}, aged ${d.age} days`;
     case 'remove_agent': return `agent ${d.id} removed`;
     case 'reset': return `world reset, seed ${d.seed}`;
     case 'new_run': return `new world, seed ${d.seed}`;

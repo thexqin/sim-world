@@ -41,6 +41,16 @@ const SCHEMA = `
   );
 `;
 
+// Columns added after the first release; older databases get them on startup (old rows read as NULL).
+const ADDED_COLUMNS = {
+  world_state: { births: 'INTEGER DEFAULT 0', deaths: 'INTEGER DEFAULT 0' },
+  agent_state: {
+    sex: 'TEXT', age: 'REAL', lifespan: 'REAL', mother_id: 'INTEGER', father_id: 'INTEGER',
+    last_birth: 'REAL', last_fight: 'REAL', died_at: 'REAL', cause: 'TEXT',
+  },
+  tick_log: { sex: 'TEXT', age: 'REAL' },
+};
+
 const r2 = (v) => Math.round(v * 100) / 100;
 const json = (v) => JSON.stringify(v ?? null);
 
@@ -48,16 +58,23 @@ export function openDb(path) {
   mkdirSync(dirname(path), { recursive: true });
   const db = new DatabaseSync(path);
   db.exec(SCHEMA);
+  for (const [table, cols] of Object.entries(ADDED_COLUMNS)) {
+    const have = new Set(db.prepare(`PRAGMA table_info(${table})`).all().map((c) => c.name));
+    for (const [col, type] of Object.entries(cols)) {
+      if (!have.has(col)) db.exec(`ALTER TABLE ${table} ADD COLUMN ${col} ${type}`);
+    }
+  }
 
   const q = {
     insertLog: db.prepare(`INSERT OR REPLACE INTO tick_log
-      (tick, day, hour, agent_id, x, y, hunger, thirst, energy, health, action)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`),
+      (tick, day, hour, agent_id, x, y, hunger, thirst, energy, health, action, sex, age)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`),
     upsertWorld: db.prepare(`INSERT OR REPLACE INTO world_state
-      (id, tick, day, hour, rng_state, next_agent_id, size, grid) VALUES (1, ?, ?, ?, ?, ?, ?, ?)`),
+      (id, tick, day, hour, rng_state, next_agent_id, size, grid, births, deaths) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?)`),
     insertAgent: db.prepare(`INSERT INTO agent_state
-      (id, x, y, hunger, thirst, energy, health, action, target, scores, inventory, recent)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`),
+      (id, x, y, hunger, thirst, energy, health, action, target, scores, inventory, recent,
+       sex, age, lifespan, mother_id, father_id, last_birth, last_fight, died_at, cause)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`),
     upsertConfig: db.prepare('INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)'),
     insertEvent: db.prepare('INSERT INTO events (tick, kind, data) VALUES (?, ?, ?)'),
     insertSnapshot: db.prepare('INSERT INTO snapshots (tick, label, data) VALUES (?, ?, ?)'),
@@ -75,11 +92,14 @@ export function openDb(path) {
   }
 
   function writeState(s) {
-    q.upsertWorld.run(s.tick, s.clock.day, s.clock.hour, s.rngState, s.nextAgentId, s.world.size, s.world.grid);
+    q.upsertWorld.run(s.tick, s.clock.day, s.clock.hour, s.rngState, s.nextAgentId, s.world.size, s.world.grid,
+      s.stats?.births ?? 0, s.stats?.deaths ?? 0);
     db.exec('DELETE FROM agent_state');
     for (const a of s.agents) {
       q.insertAgent.run(a.id, a.x, a.y, a.hunger, a.thirst, a.energy, a.health, a.action,
-        json(a.target), json(a.scores), json(a.inventory), json(a.recent));
+        json(a.target), json(a.scores), json(a.inventory), json(a.recent),
+        a.sex ?? null, a.age ?? null, a.lifespan ?? null, a.motherId ?? null, a.fatherId ?? null,
+        a.lastBirth ?? null, a.lastFight ?? null, a.diedAt ?? null, a.cause ?? null);
     }
   }
 
@@ -93,10 +113,13 @@ export function openDb(path) {
         hunger: a.hunger, thirst: a.thirst, energy: a.energy, health: a.health, action: a.action,
         target: JSON.parse(a.target), scores: JSON.parse(a.scores) ?? {},
         inventory: JSON.parse(a.inventory) ?? {}, recent: JSON.parse(a.recent) ?? [],
+        sex: a.sex, age: a.age, lifespan: a.lifespan, motherId: a.mother_id, fatherId: a.father_id,
+        lastBirth: a.last_birth, lastFight: a.last_fight, diedAt: a.died_at, cause: a.cause,
       }));
       return {
         tick: w.tick, clock: { day: w.day, hour: w.hour }, rngState: w.rng_state,
         nextAgentId: w.next_agent_id, world: { size: w.size, grid: w.grid }, agents,
+        stats: { births: w.births ?? 0, deaths: w.deaths ?? 0 },
       };
     },
 
@@ -108,7 +131,8 @@ export function openDb(path) {
     saveTick(state, rows) {
       tx(() => {
         for (const { tick, day, hour, agent: a } of rows) {
-          q.insertLog.run(tick, day, r2(hour), a.id, a.x, a.y, r2(a.hunger), r2(a.thirst), r2(a.energy), r2(a.health), a.action);
+          q.insertLog.run(tick, day, r2(hour), a.id, a.x, a.y, r2(a.hunger), r2(a.thirst), r2(a.energy), r2(a.health), a.action,
+            a.sex ?? null, a.age === undefined ? null : r2(a.age));
         }
         writeState(state);
       });

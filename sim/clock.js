@@ -29,5 +29,6 @@ export function clockInfo(clock, cfg) {
     else if (sinceDawn >= 0 && sinceDawn < tw) darkness = 1 - sinceDawn / tw;
   }
 
-  return { day, hour, isNight, darkness: darkness * cfg.nightDarkness };
+  // now: days since the run began, used for ages and cooldowns.
+  return { day, hour, now: day - 1 + hour / 24, isNight, darkness: darkness * cfg.nightDarkness };
 }
