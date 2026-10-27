@@ -31,6 +31,7 @@
       <h1>God mode <button class="open-guide small" title="Open the full guide: how the world works and what every dial does.">📖 Guide</button></h1>
       <div class="buttons">
         <button id="play" title="Pause or resume the world."></button>
+        <button id="restore-defaults" title="Put every dial back to its default value (play/pause is left as it is). Changes apply on the next tick; dials marked (on reset) apply when you next reset the world. Logged as one event listing what changed.">Restore default dials</button>
         <button id="add-agent" title="Add a grown-up newcomer of random sex at a random grass tile. Newcomers are not related to anyone, so they can bring new blood into a family-locked population.">Add agent</button>
       </div>
       <div id="dials-main"></div>
@@ -118,7 +119,8 @@
       <li><b>Click the map</b> on empty grass to drop a berry.</li>
       <li><b>Click an agent</b> on the map, or its row in the status panel, to see its details (age, strength, parents, children, scores) and plot its history.</li>
       <li><b>Add agent</b>: bring in a grown-up newcomer of random sex. The <b>✕</b> in an agent's row removes it (dead ones too).</li>
-      <li><b>Reset world</b>: start over with a fresh map from the chosen seed.</li>
+      <li><b>Reset world</b>: start over with a fresh map from the chosen seed. Your dial settings are kept.</li>
+      <li><b>Restore default dials</b>: put every dial back to its default. For a completely fresh start, press this and then Reset world.</li>
     </ul>
 
     <h2>Saving, history and cleaning up</h2>

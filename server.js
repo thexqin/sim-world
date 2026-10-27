@@ -4,7 +4,7 @@ import http from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { join, extname, normalize, dirname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { DIALS, coerce, sanitizeConfig } from './sim/dials.js';
+import { DIALS, coerce, sanitizeConfig, defaultConfig } from './sim/dials.js';
 import { createSim, step, serialize, restore, addAgent, removeAgent, spawnFoodAt, snapshotForClient } from './sim/sim.js';
 import { openDb } from './sim/db.js';
 
@@ -143,6 +143,19 @@ const actions = {
     db.compact();
     record('clear_history', {});
     return {};
+  },
+  // Every dial back to its default (except play/pause), logged as one event.
+  restore_defaults() {
+    const changes = [];
+    for (const [key, value] of Object.entries(defaultConfig())) {
+      if (key === 'running' || config[key] === value) continue;
+      changes.push({ key, from: config[key], to: value });
+      config[key] = value;
+    }
+    db.saveConfig(config);
+    push('config', config);
+    record('restore_defaults', { changes });
+    return { changed: changes.length };
   },
 };
 

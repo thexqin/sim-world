@@ -93,7 +93,7 @@ From the panel on the right you can:
 - **Turn dials** while the world runs: speed, day length, hunger/thirst/energy rates, adult age, lifespan, birth interval, population cap, aggression, fight damage, food regrowth and scarcity, drought, and many advanced settings. Changes apply on the next tick.
 - **Click the map** to drop a berry on empty grass.
 - **Add or remove agents**, and click an agent to see its age, strength, family and history.
-- **Reset the world** with a new seed for a new random map.
+- **Reset the world** with a new seed for a new random map. It keeps your dial settings; **Restore default dials** puts them all back to their defaults.
 - **Save, load and delete snapshots**: save points you can jump back to.
 - **Read or clear the event log**: every change you make, stamped with the tick it happened.
 - **View or clear the history chart** of an agent's needs over time.

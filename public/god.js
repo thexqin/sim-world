@@ -104,6 +104,9 @@ function describe(e) {
     case 'load_snapshot': return `snapshot #${d.id} loaded (back to tick ${d.tick})`;
     case 'delete_snapshot': return `snapshot #${d.id} deleted`;
     case 'clear_history': return 'history cleared';
+    case 'restore_defaults': return d.changes?.length
+      ? `dials restored to defaults: ${d.changes.map((c) => `${schemaByKey.get(c.key)?.label ?? c.key} ${c.from} → ${c.to}`).join(', ')}`
+      : 'dials restored to defaults (none had changed)';
     case 'resume': return 'server restarted, resumed';
     default: return e.kind;
   }
@@ -169,6 +172,9 @@ export async function initGod(es) {
 
   $('play').onclick = () => setDial('running', !config.running);
   $('add-agent').onclick = () => action('add_agent');
+  $('restore-defaults').onclick = () => {
+    if (confirm('Put every dial back to its default value? Play/pause is left as it is.')) action('restore_defaults');
+  };
   $('reset').onclick = () => {
     const seed = Number($('reset-seed').value);
     if (confirm(`Reset the world with seed ${seed}? The current run and its history will be cleared (snapshots are kept).`)) action('reset', { seed });
