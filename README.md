@@ -10,20 +10,7 @@ Small square creatures called **agents** live on a grid of grass, lakes and tree
 
 ## Demo
 
-<!--
-  To add a recording, use one of these:
-
-  A) Short looping GIF (plays automatically, best for a 5–15 second preview):
-     save it as docs/demo.gif in this repo, then replace this comment with:
-     ![Sim World demo](docs/demo.gif)
-
-  B) Longer video with sound or more detail (MP4/MOV, up to 10 MB on free accounts):
-     on github.com, open this README, click the pencil (Edit), and drag the video
-     file into the editor at this spot. GitHub uploads it and inserts a link that
-     plays as a video right here.
--->
-
-_Demo recording coming soon._
+https://github.com/user-attachments/assets/151676cf-0bde-459b-80c1-03d587aab9b4
 
 ## How this was made
 
