@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sim World</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <section class="map">
+      <canvas id="world" title="Click an empty grass tile to drop a berry there."></canvas>
+      <p class="muted">Click an empty grass tile to drop food. Hover any control for an explanation, or open the <a href="#" class="open-guide">Guide</a>.</p>
+      <div class="chart-head">
+        <h2>History</h2>
+        <select id="history-agent" title="Which agent's needs to plot."></select>
+        <span class="legend" id="legend"></span>
+        <button id="clear-history" class="small danger" title="Delete the saved tick-by-tick history (what this chart and /api/log read from). The world itself is not changed.">Clear history</button>
+      </div>
+      <canvas id="history" height="140" title="Each line is one need over time, 0 at the bottom and 100 at the top. Vertical lines mark the start of each day."></canvas>
+    </section>
+
+    <aside id="panel">
+      <h1>Sim World <span id="conn" class="pill" title="Whether this page is connected to the server. Red means the server is stopped; the page reconnects by itself when it comes back.">connecting…</span></h1>
+      <div id="clock" class="clock" title="In-world day and time. The moon means it is night."></div>
+      <div id="world-info" class="muted"></div>
+      <div id="agents"></div>
+    </aside>
+
+    <aside id="god">
+      <h1>God mode <button class="open-guide small" title="Open the full guide: how the world works and what every dial does.">📖 Guide</button></h1>
+      <div class="buttons">
+        <button id="play" title="Pause or resume the world."></button>
+        <button id="add-agent" title="Add one more agent at a random grass tile, using the Starting hunger / thirst / energy dials.">Add agent</button>
+      </div>
+      <div id="dials-main"></div>
+      <details>
+        <summary>Advanced dials</summary>
+        <div id="dials-advanced"></div>
+      </details>
+
+      <h2>World</h2>
+      <div class="row">
+        <label title="The seed decides the random map. Same seed = same map.">Seed <input id="reset-seed" type="number" min="0" max="999999"></label>
+        <button id="reset" class="danger" title="Build a brand-new world from this seed and the current dials. The current run and its history are cleared; snapshots and the event log are kept.">Reset world</button>
+      </div>
+
+      <h2>Snapshots</h2>
+      <div class="row">
+        <input id="snap-label" placeholder="label (optional)" title="An optional name to help you recognise the snapshot later.">
+        <button id="snap-save" title="Save the whole world as it is right now (map, agents, time and dials) so you can come back to this moment later.">Save</button>
+      </div>
+      <table id="snapshots"></table>
+
+      <h2 class="with-button">Event log
+        <button id="clear-events" class="small danger" title="Delete every entry in the event log. This cannot be undone.">Clear</button>
+      </h2>
+      <table id="events"></table>
+    </aside>
+  </main>
+
+  <dialog id="guide">
+    <div class="guide-head">
+      <h1>Sim World guide</h1>
+      <button id="close-guide" title="Close the guide (or press Esc).">Close</button>
+    </div>
+
+    <h2>What this is</h2>
+    <p>A tiny world on a grid. Little square creatures called <b>agents</b> live in it. Each agent gets hungry, thirsty and tired, and has to find berries, water and rest to stay alive. You watch from above and can change the rules of the world at any time with the dials. You are the god of this world.</p>
+
+    <h2>The map</h2>
+    <ul class="legend-list">
+      <li><span class="sw" style="background:#5a9e3f"></span><b>Grass</b>: open ground the agents walk on.</li>
+      <li><span class="sw" style="background:#2f6fc4"></span><b>Water</b>: lakes. Agents can't walk on water, but they drink from the edge.</li>
+      <li><span class="sw" style="background:#1f4a1c"></span><b>Trees</b>: block movement. Berries like to grow beside them.</li>
+      <li><span class="sw berry"></span><b>Berries</b>: food. Eaten berries disappear and new ones grow over time.</li>
+      <li><span class="sw" style="background:#e63946;outline:1px solid #000"></span><b>Agent</b>: each agent has its own colour. A dashed line shows where it is heading; a small “z” means it is asleep; grey means it has died.</li>
+    </ul>
+
+    <h2>Time</h2>
+    <p>The world moves forward in small steps called <b>ticks</b>. Every tick, each agent's needs change a little, it decides what to do, and it moves one tile or performs one action. At normal speed there are 4 ticks per second, and a full day (240 ticks) takes about a minute. At night the map darkens and agents want to sleep.</p>
+
+    <h2>The agent's needs</h2>
+    <p>Each need is a number from 0 to 100, shown as a bar in the status panel.</p>
+    <ul>
+      <li><b>Hunger</b> rises every tick. Eating a berry lowers it.</li>
+      <li><b>Thirst</b> rises every tick. Drinking next to a lake lowers it.</li>
+      <li><b>Energy</b> falls every tick. Sleeping restores it.</li>
+      <li><b>Health</b> drops whenever hunger or thirst hits 100 or energy hits 0, and slowly recovers otherwise. At 0 health the agent dies.</li>
+    </ul>
+
+    <h2>How the agent decides</h2>
+    <p>Every tick the agent gives each of its four choices a score and does the one with the highest score:</p>
+    <ul>
+      <li><b>eat</b> = its hunger (if any berry can be reached)</li>
+      <li><b>seek_water</b> = its thirst (if any water can be reached)</li>
+      <li><b>sleep</b> = 100 − energy, plus a bonus at night</li>
+      <li><b>wander</b> = a fixed score (currently <span data-dial="wanderScore"></span>)</li>
+    </ul>
+    <p>So the agent wanders until a need climbs above the wander score, then deals with the biggest need first. To eat or drink it walks the shortest path to the nearest berry or lake edge, one tile per tick. Whatever it is already doing gets a small bonus so it doesn't keep changing its mind. You can see the live scores under “scores &amp; recent actions” in the status panel; the winner is highlighted.</p>
+
+    <h2>What you can do</h2>
+    <ul>
+      <li><b>Dials</b>: change any rule while the world runs. Changes apply on the next tick. Dials marked <i>(on reset)</i> only shape the next new world.</li>
+      <li><b>Click the map</b> on empty grass to drop a berry.</li>
+      <li><b>Add agent</b>: put another creature into the world. The <b>✕</b> next to an agent's name in the status panel removes it (dead ones too).</li>
+      <li><b>Reset world</b>: start over with a fresh map from the chosen seed.</li>
+    </ul>
+
+    <h2>Saving, history and cleaning up</h2>
+    <ul>
+      <li>The world is <b>saved automatically every tick</b>. If the server stops, starting it again carries on exactly where it left off.</li>
+      <li><b>Snapshots</b> are save points you make yourself. Load one to jump back to that moment. Anything that happened after it is discarded. Delete snapshots you no longer need with ✕.</li>
+      <li>The <b>event log</b> records every dial change and action with the tick it happened. <b>Clear</b> empties it.</li>
+      <li>The <b>history</b> chart shows an agent's needs over time. <b>Clear history</b> deletes the stored history but leaves the world as it is.</li>
+      <li>Everything is stored in one file, <code>data/world.db</code>, in the project folder. Deleting the <code>data</code> folder (with the server stopped) erases everything.</li>
+    </ul>
+
+    <h2>Things to try</h2>
+    <ul>
+      <li>Turn on <b>Drought</b> and watch berries become scarce.</li>
+      <li>Raise <b>Hunger rate</b> to 2 and see whether the agent can keep up.</li>
+      <li>Set <b>Sleep bonus at night</b> to 0 and the agent only sleeps when tired, day or night.</li>
+      <li>Save a snapshot, change something, then load it to compare what happens.</li>
+    </ul>
+
+    <h2>Every dial explained</h2>
+    <p class="muted">Current values update live. “Range” is the lowest and highest allowed value.</p>
+    <div id="guide-dials"></div>
+  </dialog>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

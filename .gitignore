@@ -1,0 +1,7 @@
+data/
+.npm-cache/
+node_modules/
+.claude/
+
+# Private notes and working files
+notes/

@@ -1,0 +1,9 @@
+{
+  "name": "sim-world",
+  "private": true,
+  "description": "A tiny 2D world simulation you watch and control from the browser.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=22.5" }
+}
