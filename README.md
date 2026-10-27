@@ -10,7 +10,7 @@ Small square creatures called **agents** live on a grid of grass, lakes and tree
 
 ## Demo
 
-https://github.com/user-attachments/assets/151676cf-0bde-459b-80c1-03d587aab9b4
+https://github.com/user-attachments/assets/b5d70e3d-3839-4b3a-b2db-4938dc6e6663
 
 ## How this was made
 
