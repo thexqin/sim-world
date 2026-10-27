@@ -5,3 +5,6 @@ node_modules/
 
 # Private notes and working files
 notes/
+
+# Built release archives (published on GitHub Releases, not in the repo)
+releases/

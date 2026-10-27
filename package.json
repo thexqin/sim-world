@@ -1,5 +1,6 @@
 {
   "name": "sim-world",
+  "version": "1.0.0",
   "private": true,
   "description": "A tiny 2D world simulation you watch and control from the browser.",
   "license": "MIT",

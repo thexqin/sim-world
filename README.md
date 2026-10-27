@@ -33,6 +33,18 @@ node --version
 
 ## Getting started
 
+### Option 1: download (no git needed)
+
+1. Install [Node.js](https://nodejs.org/) 22.5 or newer, if you don't have it.
+2. Download the latest `sim-world-vX.Y.Z.zip` from the [Releases page](https://github.com/thexqin/sim-world/releases) and unzip it anywhere.
+3. Start it:
+   - **Windows:** double-click `start.cmd`.
+   - **macOS / Linux:** in a terminal inside the folder, run `sh start.sh`.
+
+The launcher checks your Node.js version, starts the world and opens it in your browser.
+
+### Option 2: clone with git
+
 ```bash
 git clone https://github.com/thexqin/sim-world.git
 cd sim-world
@@ -91,6 +103,8 @@ It is not committed to git. To start completely fresh, stop the server and delet
 
 ```
 server.js        HTTP server, tick loop and API (http://localhost:3000)
+start.cmd        one-click launcher for Windows
+start.sh         launcher for macOS / Linux
 sim/
   world.js       grid map: grass, water, trees, food; pathfinding
   agent.js       needs and decision logic (decide() is the swap point for other policies)
